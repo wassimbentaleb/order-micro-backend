@@ -7,7 +7,6 @@ import (
 	"github.com/hero/microservice/user-service/internal/model"
 	"github.com/hero/microservice/user-service/internal/rabbitmq"
 	"github.com/hero/microservice/user-service/internal/repository"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -29,16 +28,11 @@ func NewUserService(repo repository.UserRepository, publisher *rabbitmq.Publishe
 }
 
 func (s *userService) Register(input model.RegisterInput) (*model.User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, errors.New("failed to hash password")
-	}
-
 	user := &model.User{
 		ID:           uuid.New(),
 		Username:     input.Username,
 		Email:        input.Email,
-		PasswordHash: string(hash),
+		PasswordHash: input.Password,
 	}
 
 	if err := s.repo.Create(user); err != nil {
@@ -64,7 +58,7 @@ func (s *userService) Login(input model.LoginInput) (*model.User, error) {
 		return nil, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
+	if user.PasswordHash != input.Password {
 		return nil, errors.New("invalid email or password")
 	}
 

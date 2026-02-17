@@ -203,26 +203,26 @@ INSERT INTO product_schema.categories (name) VALUES
 
 -- ── Users (password_hash = bcrypt of "password123") ──
 INSERT INTO user_schema.users (id, username, email, password_hash, created_at, updated_at) VALUES
-    ('a0000001-0000-0000-0000-000000000001', 'alice',    'alice@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '90 days', NOW() - INTERVAL '1 day'),
-    ('a0000001-0000-0000-0000-000000000002', 'bob',      'bob@example.com',      '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '85 days', NOW() - INTERVAL '2 days'),
-    ('a0000001-0000-0000-0000-000000000003', 'charlie',  'charlie@example.com',  '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '80 days', NOW() - INTERVAL '3 days'),
-    ('a0000001-0000-0000-0000-000000000004', 'diana',    'diana@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '75 days', NOW() - INTERVAL '5 days'),
-    ('a0000001-0000-0000-0000-000000000005', 'edward',   'edward@example.com',   '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '70 days', NOW() - INTERVAL '1 day'),
-    ('a0000001-0000-0000-0000-000000000006', 'fiona',    'fiona@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '65 days', NOW() - INTERVAL '10 days'),
-    ('a0000001-0000-0000-0000-000000000007', 'george',   'george@example.com',   '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '60 days', NOW() - INTERVAL '4 days'),
-    ('a0000001-0000-0000-0000-000000000008', 'hannah',   'hannah@example.com',   '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '55 days', NOW() - INTERVAL '2 days'),
-    ('a0000001-0000-0000-0000-000000000009', 'ivan',     'ivan@example.com',     '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '50 days', NOW() - INTERVAL '7 days'),
-    ('a0000001-0000-0000-0000-000000000010', 'julia',    'julia@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '45 days', NOW() - INTERVAL '1 day'),
-    ('a0000001-0000-0000-0000-000000000011', 'kevin',    'kevin@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '40 days', NOW() - INTERVAL '3 days'),
-    ('a0000001-0000-0000-0000-000000000012', 'laura',    'laura@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '35 days', NOW() - INTERVAL '6 days'),
-    ('a0000001-0000-0000-0000-000000000013', 'mike',     'mike@example.com',     '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '30 days', NOW() - INTERVAL '2 days'),
-    ('a0000001-0000-0000-0000-000000000014', 'natalie',  'natalie@example.com',  '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '25 days', NOW() - INTERVAL '1 day'),
-    ('a0000001-0000-0000-0000-000000000015', 'oscar',    'oscar@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '20 days', NOW() - INTERVAL '5 days'),
-    ('a0000001-0000-0000-0000-000000000016', 'patricia', 'patricia@example.com', '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '18 days', NOW() - INTERVAL '2 days'),
-    ('a0000001-0000-0000-0000-000000000017', 'quinn',    'quinn@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '15 days', NOW() - INTERVAL '1 day'),
-    ('a0000001-0000-0000-0000-000000000018', 'rachel',   'rachel@example.com',   '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '12 days', NOW() - INTERVAL '3 days'),
-    ('a0000001-0000-0000-0000-000000000019', 'steve',    'steve@example.com',    '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '10 days', NOW() - INTERVAL '1 day'),
-    ('a0000001-0000-0000-0000-000000000020', 'tina',     'tina@example.com',     '$2b$10$yd9c8dvxTR42rwKYQL3cKuVVJQHvN5mqPQzujmY/hKkP5dy1p7LcW', NOW() - INTERVAL '5 days',  NOW() - INTERVAL '1 day');
+    ('a0000001-0000-0000-0000-000000000001', 'alice',    'alice@example.com',    'password123', NOW() - INTERVAL '90 days', NOW() - INTERVAL '1 day'),
+    ('a0000001-0000-0000-0000-000000000002', 'bob',      'bob@example.com',      'password123', NOW() - INTERVAL '85 days', NOW() - INTERVAL '2 days'),
+    ('a0000001-0000-0000-0000-000000000003', 'charlie',  'charlie@example.com',  'password123', NOW() - INTERVAL '80 days', NOW() - INTERVAL '3 days'),
+    ('a0000001-0000-0000-0000-000000000004', 'diana',    'diana@example.com',    'password123', NOW() - INTERVAL '75 days', NOW() - INTERVAL '5 days'),
+    ('a0000001-0000-0000-0000-000000000005', 'edward',   'edward@example.com',   'password123', NOW() - INTERVAL '70 days', NOW() - INTERVAL '1 day'),
+    ('a0000001-0000-0000-0000-000000000006', 'fiona',    'fiona@example.com',    'password123', NOW() - INTERVAL '65 days', NOW() - INTERVAL '10 days'),
+    ('a0000001-0000-0000-0000-000000000007', 'george',   'george@example.com',   'password123', NOW() - INTERVAL '60 days', NOW() - INTERVAL '4 days'),
+    ('a0000001-0000-0000-0000-000000000008', 'hannah',   'hannah@example.com',   'password123', NOW() - INTERVAL '55 days', NOW() - INTERVAL '2 days'),
+    ('a0000001-0000-0000-0000-000000000009', 'ivan',     'ivan@example.com',     'password123', NOW() - INTERVAL '50 days', NOW() - INTERVAL '7 days'),
+    ('a0000001-0000-0000-0000-000000000010', 'julia',    'julia@example.com',    'password123', NOW() - INTERVAL '45 days', NOW() - INTERVAL '1 day'),
+    ('a0000001-0000-0000-0000-000000000011', 'kevin',    'kevin@example.com',    'password123', NOW() - INTERVAL '40 days', NOW() - INTERVAL '3 days'),
+    ('a0000001-0000-0000-0000-000000000012', 'laura',    'laura@example.com',    'password123', NOW() - INTERVAL '35 days', NOW() - INTERVAL '6 days'),
+    ('a0000001-0000-0000-0000-000000000013', 'mike',     'mike@example.com',     'password123', NOW() - INTERVAL '30 days', NOW() - INTERVAL '2 days'),
+    ('a0000001-0000-0000-0000-000000000014', 'natalie',  'natalie@example.com',  'password123', NOW() - INTERVAL '25 days', NOW() - INTERVAL '1 day'),
+    ('a0000001-0000-0000-0000-000000000015', 'oscar',    'oscar@example.com',    'password123', NOW() - INTERVAL '20 days', NOW() - INTERVAL '5 days'),
+    ('a0000001-0000-0000-0000-000000000016', 'patricia', 'patricia@example.com', 'password123', NOW() - INTERVAL '18 days', NOW() - INTERVAL '2 days'),
+    ('a0000001-0000-0000-0000-000000000017', 'quinn',    'quinn@example.com',    'password123', NOW() - INTERVAL '15 days', NOW() - INTERVAL '1 day'),
+    ('a0000001-0000-0000-0000-000000000018', 'rachel',   'rachel@example.com',   'password123', NOW() - INTERVAL '12 days', NOW() - INTERVAL '3 days'),
+    ('a0000001-0000-0000-0000-000000000019', 'steve',    'steve@example.com',    'password123', NOW() - INTERVAL '10 days', NOW() - INTERVAL '1 day'),
+    ('a0000001-0000-0000-0000-000000000020', 'tina',     'tina@example.com',     'password123', NOW() - INTERVAL '5 days',  NOW() - INTERVAL '1 day');
 
 -- ── User Roles ──
 INSERT INTO user_schema.user_roles (user_id, role_id) VALUES
