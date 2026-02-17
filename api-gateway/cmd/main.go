@@ -1,11 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"github.com/hero/microservice/api-gateway/internal/routes"
 )
 
@@ -17,17 +17,18 @@ func main() {
 		NotificationServiceURL: getEnv("NOTIFICATION_SERVICE_URL", "http://localhost:8004"),
 	}
 
-	r := gin.Default()
+	mux := http.NewServeMux()
 
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"service": "api-gateway", "status": "running"})
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"service": "api-gateway", "status": "running"})
 	})
 
-	routes.SetupRoutes(r, cfg)
+	routes.SetupRoutes(mux, cfg)
 
 	port := getEnv("SERVER_PORT", "8080")
 	log.Printf("API Gateway starting on port %s", port)
-	if err := r.Run(":" + port); err != nil {
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
 }
