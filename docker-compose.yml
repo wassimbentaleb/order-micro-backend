@@ -54,6 +54,17 @@ services:
     networks:
       - microservice-network
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - "5540:5540"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - microservice-network
+
   # ─── Services ──────────────────────────────────────────────────
   user-service:
     build:
