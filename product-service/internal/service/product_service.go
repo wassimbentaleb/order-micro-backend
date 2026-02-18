@@ -1,14 +1,21 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hero/microservice/product-service/internal/model"
 	"github.com/hero/microservice/product-service/internal/rabbitmq"
 	"github.com/hero/microservice/product-service/internal/repository"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
+
+const productCacheTTL = 10 * time.Minute
 
 type ProductService interface {
 	CreateProduct(input model.CreateProductInput) (*model.Product, error)
@@ -22,10 +29,39 @@ type ProductService interface {
 type productService struct {
 	repo      repository.ProductRepository
 	publisher *rabbitmq.Publisher
+	rdb       *redis.Client
 }
 
-func NewProductService(repo repository.ProductRepository, publisher *rabbitmq.Publisher) ProductService {
-	return &productService{repo: repo, publisher: publisher}
+func NewProductService(repo repository.ProductRepository, publisher *rabbitmq.Publisher, rdb *redis.Client) ProductService {
+	return &productService{repo: repo, publisher: publisher, rdb: rdb}
+}
+
+func (s *productService) cacheKey(id uuid.UUID) string {
+	return fmt.Sprintf("product:%s", id.String())
+}
+
+func (s *productService) cacheProduct(product *model.Product) {
+	data, err := json.Marshal(product)
+	if err != nil {
+		return
+	}
+	s.rdb.Set(context.Background(), s.cacheKey(product.ID), data, productCacheTTL)
+}
+
+func (s *productService) getCachedProduct(id uuid.UUID) *model.Product {
+	val, err := s.rdb.Get(context.Background(), s.cacheKey(id)).Result()
+	if err != nil {
+		return nil
+	}
+	var product model.Product
+	if err := json.Unmarshal([]byte(val), &product); err != nil {
+		return nil
+	}
+	return &product
+}
+
+func (s *productService) invalidateCache(id uuid.UUID) {
+	s.rdb.Del(context.Background(), s.cacheKey(id))
 }
 
 func (s *productService) CreateProduct(input model.CreateProductInput) (*model.Product, error) {
@@ -41,7 +77,6 @@ func (s *productService) CreateProduct(input model.CreateProductInput) (*model.P
 		return nil, errors.New("failed to create product: " + err.Error())
 	}
 
-	// Create inventory record
 	inv := &model.Inventory{
 		ProductID: product.ID,
 		Quantity:  input.Quantity,
@@ -49,6 +84,8 @@ func (s *productService) CreateProduct(input model.CreateProductInput) (*model.P
 	if err := s.repo.CreateInventory(inv); err != nil {
 		return nil, errors.New("failed to create inventory: " + err.Error())
 	}
+
+	s.cacheProduct(product)
 
 	s.publisher.Publish("product.created", map[string]interface{}{
 		"product_id":   product.ID.String(),
@@ -64,6 +101,11 @@ func (s *productService) GetAllProducts() ([]model.Product, error) {
 }
 
 func (s *productService) GetProduct(id uuid.UUID) (*model.Product, error) {
+	// Try cache first
+	if cached := s.getCachedProduct(id); cached != nil {
+		return cached, nil
+	}
+
 	product, err := s.repo.GetByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -71,6 +113,8 @@ func (s *productService) GetProduct(id uuid.UUID) (*model.Product, error) {
 		}
 		return nil, err
 	}
+
+	s.cacheProduct(product)
 	return product, nil
 }
 
@@ -100,6 +144,9 @@ func (s *productService) UpdateProduct(id uuid.UUID, input model.UpdateProductIn
 		return nil, errors.New("failed to update product: " + err.Error())
 	}
 
+	s.invalidateCache(id)
+	s.cacheProduct(product)
+
 	return product, nil
 }
 
@@ -112,6 +159,8 @@ func (s *productService) UpdateStock(id uuid.UUID, input model.UpdateStockInput)
 	if err != nil {
 		return nil, err
 	}
+
+	s.invalidateCache(id)
 
 	s.publisher.Publish("inventory.updated", map[string]interface{}{
 		"product_id":         id.String(),
@@ -127,6 +176,8 @@ func (s *productService) DecrementStock(productID uuid.UUID, amount int) error {
 	if err != nil {
 		return err
 	}
+
+	s.invalidateCache(productID)
 
 	s.publisher.Publish("inventory.updated", map[string]interface{}{
 		"product_id":         productID.String(),

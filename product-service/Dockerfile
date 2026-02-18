@@ -2,10 +2,12 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /build
 
-COPY go.mod go.sum ./
+COPY pkg/ ./pkg/
+COPY product-service/go.mod product-service/go.sum ./product-service/
+WORKDIR /build/product-service
 RUN go mod download
 
-COPY . .
+COPY product-service/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app ./cmd/main.go
 
 FROM alpine:latest

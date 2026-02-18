@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hero/microservice/pkg/cache"
 	"github.com/hero/microservice/user-service/internal/handler"
 	"github.com/hero/microservice/user-service/internal/rabbitmq"
 	"github.com/hero/microservice/user-service/internal/repository"
@@ -44,9 +45,19 @@ func main() {
 	}
 	defer publisher.Close()
 
+	// Redis
+	rdb, err := cache.NewRedisClient(
+		getEnv("REDIS_HOST", "localhost"),
+		getEnv("REDIS_PORT", "6379"),
+	)
+	if err != nil {
+		log.Fatal("Failed to connect to Redis: ", err)
+	}
+	defer rdb.Close()
+
 	// Wire layers
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo, publisher)
+	userService := service.NewUserService(userRepo, publisher, rdb)
 	userHandler := handler.NewUserHandler(userService)
 
 	// Gin router

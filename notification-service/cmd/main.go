@@ -10,6 +10,7 @@ import (
 	"github.com/hero/microservice/notification-service/internal/rabbitmq"
 	"github.com/hero/microservice/notification-service/internal/repository"
 	"github.com/hero/microservice/notification-service/internal/service"
+	"github.com/hero/microservice/pkg/cache"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -31,12 +32,23 @@ func main() {
 	}
 	log.Println("Database connected")
 
-	// RabbitMQ consumer
+	// Redis
+	rdb, err := cache.NewRedisClient(
+		getEnv("REDIS_HOST", "localhost"),
+		getEnv("REDIS_PORT", "6379"),
+	)
+	if err != nil {
+		log.Fatal("Failed to connect to Redis: ", err)
+	}
+	defer rdb.Close()
+
+	// RabbitMQ consumer (with Redis for deduplication)
 	consumer, err := rabbitmq.NewConsumer(
 		getEnv("RABBITMQ_HOST", "localhost"),
 		getEnv("RABBITMQ_PORT", "5672"),
 		getEnv("RABBITMQ_USER", "guest"),
 		getEnv("RABBITMQ_PASSWORD", "guest"),
+		rdb,
 	)
 	if err != nil {
 		log.Fatal("Failed to connect to RabbitMQ: ", err)

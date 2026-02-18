@@ -53,3 +53,8 @@ type UpdateInput struct {
 	Username string `json:"username" binding:"omitempty,min=3,max=100"`
 	Email    string `json:"email" binding:"omitempty,email"`
 }
+
+type LoginResponse struct {
+	User  *User  `json:"user"`
+	Token string `json:"token"`
+}

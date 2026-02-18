@@ -10,6 +10,7 @@ import (
 	"github.com/hero/microservice/order-service/internal/rabbitmq"
 	"github.com/hero/microservice/order-service/internal/repository"
 	"github.com/hero/microservice/order-service/internal/service"
+	"github.com/hero/microservice/pkg/cache"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -55,10 +56,23 @@ func main() {
 	}
 	defer consumer.Close()
 
+	// Redis
+	rdb, err := cache.NewRedisClient(
+		getEnv("REDIS_HOST", "localhost"),
+		getEnv("REDIS_PORT", "6379"),
+	)
+	if err != nil {
+		log.Fatal("Failed to connect to Redis: ", err)
+	}
+	defer rdb.Close()
+
 	// Wire layers
 	orderRepo := repository.NewOrderRepository(db)
 	orderService := service.NewOrderService(orderRepo, publisher)
 	orderHandler := handler.NewOrderHandler(orderService)
+
+	cartService := service.NewCartService(rdb)
+	cartHandler := handler.NewCartHandler(cartService)
 
 	// Start consuming inventory.updated events
 	consumer.ConsumeInventoryUpdated(func(data rabbitmq.InventoryUpdatedData) {
@@ -75,6 +89,7 @@ func main() {
 	})
 
 	orderHandler.RegisterRoutes(r)
+	cartHandler.RegisterRoutes(r)
 
 	port := getEnv("SERVER_PORT", "8003")
 	log.Printf("Order Service starting on port %s", port)

@@ -1,16 +1,21 @@
 package rabbitmq
 
 import (
+	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/redis/go-redis/v9"
 )
 
 type Consumer struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
+	rdb     *redis.Client
 }
 
 type GenericEvent struct {
@@ -25,7 +30,7 @@ type EventHandlers struct {
 	OnProductOutOfStock func(productID, productName string)
 }
 
-func NewConsumer(host, port, user, password string) (*Consumer, error) {
+func NewConsumer(host, port, user, password string, rdb *redis.Client) (*Consumer, error) {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%s/", user, password, host, port)
 
 	conn, err := amqp.Dial(url)
@@ -78,11 +83,29 @@ func NewConsumer(host, port, user, password string) (*Consumer, error) {
 	}
 
 	log.Println("RabbitMQ consumer connected")
-	return &Consumer{conn: conn, channel: ch}, nil
+	return &Consumer{conn: conn, channel: ch, rdb: rdb}, nil
+}
+
+func (c *Consumer) isDuplicate(event GenericEvent, body []byte) bool {
+	if c.rdb == nil {
+		return false
+	}
+
+	hash := fmt.Sprintf("%x", sha256.Sum256(body))
+	key := fmt.Sprintf("dedup:%s:%s", event.Event, hash)
+
+	set, err := c.rdb.SetNX(context.Background(), key, "1", 24*time.Hour).Result()
+	if err != nil {
+		log.Printf("Dedup check failed: %v", err)
+		return false
+	}
+
+	// SetNX returns true if the key was set (i.e., first time seeing this event)
+	return !set
 }
 
 func (c *Consumer) StartConsuming(handlers EventHandlers) {
-	c.consumeQueue("user.registered.notify", func(event GenericEvent) {
+	c.consumeQueue("user.registered.notify", func(event GenericEvent, body []byte) {
 		handlers.OnUserRegistered(
 			getString(event.Data, "user_id"),
 			getString(event.Data, "username"),
@@ -90,21 +113,21 @@ func (c *Consumer) StartConsuming(handlers EventHandlers) {
 		)
 	})
 
-	c.consumeQueue("order.created.notify", func(event GenericEvent) {
+	c.consumeQueue("order.created.notify", func(event GenericEvent, body []byte) {
 		handlers.OnOrderCreated(
 			getString(event.Data, "order_id"),
 			getString(event.Data, "user_id"),
 		)
 	})
 
-	c.consumeQueue("order.completed.notify", func(event GenericEvent) {
+	c.consumeQueue("order.completed.notify", func(event GenericEvent, body []byte) {
 		handlers.OnOrderCompleted(
 			getString(event.Data, "order_id"),
 			getString(event.Data, "user_id"),
 		)
 	})
 
-	c.consumeQueue("product.outofstock.notify", func(event GenericEvent) {
+	c.consumeQueue("product.outofstock.notify", func(event GenericEvent, body []byte) {
 		handlers.OnProductOutOfStock(
 			getString(event.Data, "product_id"),
 			getString(event.Data, "product_name"),
@@ -114,7 +137,7 @@ func (c *Consumer) StartConsuming(handlers EventHandlers) {
 	log.Println("All notification consumers started")
 }
 
-func (c *Consumer) consumeQueue(queueName string, handler func(GenericEvent)) {
+func (c *Consumer) consumeQueue(queueName string, handler func(GenericEvent, []byte)) {
 	msgs, err := c.channel.Consume(queueName, "", true, false, false, false, nil)
 	if err != nil {
 		log.Printf("Failed to consume from %s: %v", queueName, err)
@@ -129,8 +152,13 @@ func (c *Consumer) consumeQueue(queueName string, handler func(GenericEvent)) {
 				continue
 			}
 
+			if c.isDuplicate(event, msg.Body) {
+				log.Printf("Skipping duplicate event from %s: %s", queueName, event.Event)
+				continue
+			}
+
 			log.Printf("Received event from %s: %s", queueName, event.Event)
-			handler(event)
+			handler(event, msg.Body)
 		}
 	}()
 

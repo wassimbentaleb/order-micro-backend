@@ -1,13 +1,8 @@
-module github.com/hero/microservice/api-gateway
+module github.com/hero/microservice/pkg
 
 go 1.25.0
 
-require (
-	github.com/hero/microservice/pkg v0.0.0
-	github.com/redis/go-redis/v9 v9.18.0
-)
-
-replace github.com/hero/microservice/pkg => ../pkg
+require github.com/redis/go-redis/v9 v9.18.0
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

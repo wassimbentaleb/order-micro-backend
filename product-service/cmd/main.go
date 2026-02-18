@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hero/microservice/pkg/cache"
 	"github.com/hero/microservice/product-service/internal/handler"
 	"github.com/hero/microservice/product-service/internal/rabbitmq"
 	"github.com/hero/microservice/product-service/internal/repository"
@@ -56,9 +57,19 @@ func main() {
 	}
 	defer consumer.Close()
 
+	// Redis
+	rdb, err := cache.NewRedisClient(
+		getEnv("REDIS_HOST", "localhost"),
+		getEnv("REDIS_PORT", "6379"),
+	)
+	if err != nil {
+		log.Fatal("Failed to connect to Redis: ", err)
+	}
+	defer rdb.Close()
+
 	// Wire layers
 	productRepo := repository.NewProductRepository(db)
-	productService := service.NewProductService(productRepo, publisher)
+	productService := service.NewProductService(productRepo, publisher, rdb)
 	productHandler := handler.NewProductHandler(productService)
 
 	// Start consuming order.created events
