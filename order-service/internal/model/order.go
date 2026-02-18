@@ -51,6 +51,6 @@ type OrderItemInput struct {
 }
 
 type PlaceOrderInput struct {
-	UserID string           `json:"user_id" binding:"required"`
+	UserID string           `json:"user_id"`
 	Items  []OrderItemInput `json:"items" binding:"required,min=1"`
 }

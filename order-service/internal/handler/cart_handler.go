@@ -15,8 +15,17 @@ func NewCartHandler(cartService service.CartService) *CartHandler {
 	return &CartHandler{cartService: cartService}
 }
 
+func (h *CartHandler) getUserID(c *gin.Context) string {
+	return c.GetHeader("X-User-ID")
+}
+
 func (h *CartHandler) GetCart(c *gin.Context) {
-	userID := c.Param("userId")
+	userID := h.getUserID(c)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	items, err := h.cartService.GetCart(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -26,7 +35,12 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 }
 
 func (h *CartHandler) AddToCart(c *gin.Context) {
-	userID := c.Param("userId")
+	userID := h.getUserID(c)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var item service.CartItem
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -42,7 +56,12 @@ func (h *CartHandler) AddToCart(c *gin.Context) {
 }
 
 func (h *CartHandler) RemoveFromCart(c *gin.Context) {
-	userID := c.Param("userId")
+	userID := h.getUserID(c)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	productID := c.Param("productId")
 
 	items, err := h.cartService.RemoveFromCart(userID, productID)
@@ -54,7 +73,12 @@ func (h *CartHandler) RemoveFromCart(c *gin.Context) {
 }
 
 func (h *CartHandler) ClearCart(c *gin.Context) {
-	userID := c.Param("userId")
+	userID := h.getUserID(c)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	if err := h.cartService.ClearCart(userID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -65,9 +89,9 @@ func (h *CartHandler) ClearCart(c *gin.Context) {
 func (h *CartHandler) RegisterRoutes(r *gin.Engine) {
 	cart := r.Group("/api/cart")
 	{
-		cart.GET("/:userId", h.GetCart)
-		cart.POST("/:userId", h.AddToCart)
-		cart.DELETE("/:userId/:productId", h.RemoveFromCart)
-		cart.DELETE("/:userId", h.ClearCart)
+		cart.GET("", h.GetCart)
+		cart.POST("", h.AddToCart)
+		cart.DELETE("/:productId", h.RemoveFromCart)
+		cart.DELETE("", h.ClearCart)
 	}
 }
